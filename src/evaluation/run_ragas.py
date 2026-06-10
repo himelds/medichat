@@ -1,9 +1,10 @@
 """Run RAGAS evaluation using single Groq Llama 3.3 70B judge.
 
-Multi-day strategy: TPD limit (100K) is exceeded by full eval requirements 
-(~600K tokens). Cache stores completed responses; daily re-runs progress 
+Multi-day strategy: TPD limit (100K) is exceeded by full eval requirements
+(~600K tokens). Cache stores completed responses; daily re-runs progress
 incrementally until all 196 metric-sample evaluations complete.
 """
+
 import json
 import os
 from datetime import date
@@ -13,6 +14,7 @@ from dotenv import load_dotenv
 # Cache MUST be set before any LLM import — critical for multi-day strategy
 from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
+
 Path("data/cache").mkdir(parents=True, exist_ok=True)
 set_llm_cache(SQLiteCache(database_path="data/cache/ragas_judge_cache.db"))
 
@@ -45,9 +47,7 @@ judge_llm = ChatOpenAI(
     request_timeout=120,
 )
 
-embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
-)
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 ragas_llm = LangchainLLMWrapper(judge_llm)
 ragas_emb = LangchainEmbeddingsWrapper(embeddings)
@@ -61,21 +61,21 @@ run_config = RunConfig(
     max_retries=5,
 )
 
-predictions = json.loads(
-    Path("data/eval/predictions_baseline.json").read_text(encoding="utf-8")
-)
+predictions = json.loads(Path("data/eval/predictions_baseline.json").read_text(encoding="utf-8"))
 dataset = Dataset.from_list(predictions)
+
 
 def safe_mean(value):
     if isinstance(value, (list, tuple, np.ndarray)):
         arr = np.array([x for x in value if x is not None], dtype=float)
         if len(arr) == 0 or np.all(np.isnan(arr)):
-            return float('nan')
+            return float("nan")
         return float(np.nanmean(arr))
     return float(value)
 
+
 print(f"Evaluating {len(predictions)} samples with {JUDGE_MODEL}...")
-print(f"Strategy: Multi-day with cache. Hit TPD? Stop, re-run tomorrow.\n")
+print("Strategy: Multi-day with cache. Hit TPD? Stop, re-run tomorrow.\n")
 
 result = evaluate(
     dataset=dataset,
@@ -102,17 +102,18 @@ scores = {
     "context_recall": safe_mean(result["context_recall"]),
 }
 
-Path("data/eval/baseline_scores.json").write_text(
-    json.dumps(scores, indent=2)
-)
-result.to_pandas().to_csv(
-    "data/eval/baseline_per_sample.csv", index=False
-)
+Path("data/eval/baseline_scores.json").write_text(json.dumps(scores, indent=2))
+result.to_pandas().to_csv("data/eval/baseline_per_sample.csv", index=False)
 
 # Quick coverage report — see how much was actually judged this run
 df = result.to_pandas()
-print(f"\n=== Coverage Report ===")
-for metric in ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]:
+print("\n=== Coverage Report ===")
+for metric in [
+    "faithfulness",
+    "answer_relevancy",
+    "context_precision",
+    "context_recall",
+]:
     if metric in df.columns:
         non_nan = df[metric].notna().sum()
         print(f"  {metric:25s}: {non_nan}/{len(df)} samples judged")

@@ -9,7 +9,7 @@
 
 ## `answer_relevancy.strictness = 1`
 
-**Default behavior:** RAGAS uses `strictness=3` for answer_relevancy, which requests 3 synthetic 
+**Default behavior:** RAGAS uses `strictness=3` for answer_relevancy, which requests 3 synthetic
 question generations per evaluation call to reduce variance via averaging.
 
 **Constraint:** Groq API enforces `n=1` (single generation per request), incompatible with default.
@@ -21,5 +21,5 @@ question generations per evaluation call to reduce variance via averaging.
 - Aggregate noise across 50 samples: ~0.03 absolute score increase
 - **Improvement deltas in ablation study unaffected** — same configuration applied to all variants
 
-**Verification:** Faithfulness, context_precision, context_recall use n=1 by default 
+**Verification:** Faithfulness, context_precision, context_recall use n=1 by default
 (no impact from this constraint).

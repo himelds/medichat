@@ -23,20 +23,21 @@ from tqdm import tqdm
 
 load_dotenv()
 
-# Config 
-CORPUS_PATH     = Path("data/processed/corpus.json")
-CHROMA_DIR      = Path("data/chroma_db")
+# Config
+CORPUS_PATH = Path("data/processed/corpus.json")
+CHROMA_DIR = Path("data/chroma_db")
 COLLECTION_NAME = "medquad_baseline"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-TOP_K           = 5
-BATCH_SIZE      = 200
-LLM_MODEL       = "gemma-4-31b-it"  # Verify exact name in AI Studio
+TOP_K = 5
+BATCH_SIZE = 200
+LLM_MODEL = "gemma-4-31b-it"  # Verify exact name in AI Studio
 
 # Embedding function (runs locally, no API cost)
 embedding_fn = SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
 
 
 # Indexing
+
 
 def get_collection(chroma_client):
     """Load existing collection or create and index from scratch."""
@@ -73,14 +74,14 @@ def _index_corpus(chroma_client):
         batch = corpus[i : i + BATCH_SIZE]
 
         collection.add(
-            ids       = [f"doc_{i+j}" for j in range(len(batch))],
-            documents = [doc["answer"] for doc in batch],
-            metadatas = [
+            ids=[f"doc_{i + j}" for j in range(len(batch))],
+            documents=[doc["answer"] for doc in batch],
+            metadatas=[
                 {
-                    "question"  : doc["question"],
-                    "focus"     : doc["focus"],
-                    "qtype"     : doc["qtype"],
-                    "source"    : doc["source"],
+                    "question": doc["question"],
+                    "focus": doc["focus"],
+                    "qtype": doc["qtype"],
+                    "source": doc["source"],
                     "source_url": doc["source_url"],
                 }
                 for doc in batch
@@ -93,6 +94,7 @@ def _index_corpus(chroma_client):
 
 # Retrieval
 
+
 def retrieve(collection, query: str, top_k: int = TOP_K) -> tuple[list, list]:
     """Embed query and return top-k (documents, metadatas)."""
     results = collection.query(
@@ -103,6 +105,7 @@ def retrieve(collection, query: str, top_k: int = TOP_K) -> tuple[list, list]:
 
 
 # Generation
+
 
 def generate(query: str, docs: list[str], metas: list[dict]) -> str:
     """Send retrieved context + question to LLM and return answer."""
@@ -145,11 +148,12 @@ Answer:"""
 
 # Full Pipeline
 
+
 def ask(collection, query: str) -> str:
     """End-to-end: question → retrieve → generate → print answer."""
-    print(f"\n{'='*65}")
+    print(f"\n{'=' * 65}")
     print(f"Question: {query}")
-    print(f"{'='*65}")
+    print(f"{'=' * 65}")
 
     docs, metas = retrieve(collection, query)
 
@@ -164,9 +168,10 @@ def ask(collection, query: str) -> str:
 
 # Main
 
+
 def main():
     chroma_client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    collection    = get_collection(chroma_client)
+    collection = get_collection(chroma_client)
 
     test_questions = [
         "What is polycystic kidney disease?",

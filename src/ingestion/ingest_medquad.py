@@ -18,12 +18,12 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-MEDQUAD_DIR  = Path("data/raw/MedQuAD")
-OUTPUT_DIR   = Path("data/processed")
-EVAL_DIR     = Path("data/eval")
-EVAL_SIZE    = 50                         # held-out pairs for evaluation
-MIN_ANSWER_LEN = 80                       # skip very short / empty answers
-RANDOM_SEED  = 42
+MEDQUAD_DIR = Path("data/raw/MedQuAD")
+OUTPUT_DIR = Path("data/processed")
+EVAL_DIR = Path("data/eval")
+EVAL_SIZE = 50  # held-out pairs for evaluation
+MIN_ANSWER_LEN = 80  # skip very short / empty answers
+RANDOM_SEED = 42
 # ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -40,7 +40,7 @@ def parse_xml_file(xml_path: Path) -> list[dict]:
 
     doc_id = root.get("id", "")
     source = root.get("source", xml_path.parent.name)
-    url    = root.get("url", "")
+    url = root.get("url", "")
 
     focus_elem = root.find("Focus")
     focus = focus_elem.text.strip() if (focus_elem is not None and focus_elem.text) else ""
@@ -59,25 +59,27 @@ def parse_xml_file(xml_path: Path) -> list[dict]:
             continue
 
         question = (q_elem.text or "").strip()
-        answer   = (a_elem.text or "").strip()
-        qtype    = q_elem.get("qtype", "")
-        qid      = q_elem.get("qid", "")
+        answer = (a_elem.text or "").strip()
+        qtype = q_elem.get("qtype", "")
+        qid = q_elem.get("qid", "")
 
         # Skip pairs with missing or very short answers
         if not question or len(answer) < MIN_ANSWER_LEN:
             continue
 
-        records.append({
-            "id":          f"{doc_id}_{pid}",
-            "qid":         qid,
-            "question":    question,
-            "answer":      answer,
-            "qtype":       qtype,
-            "focus":       focus,
-            "source":      source,
-            "source_url":  url,
-            "source_file": xml_path.name,
-        })
+        records.append(
+            {
+                "id": f"{doc_id}_{pid}",
+                "qid": qid,
+                "question": question,
+                "answer": answer,
+                "qtype": qtype,
+                "focus": focus,
+                "source": source,
+                "source_url": url,
+                "source_file": xml_path.name,
+            }
+        )
 
     return records
 
@@ -105,7 +107,7 @@ def main():
             folder_stats[folder] = folder_stats.get(folder, 0) + len(records)
             all_records.extend(records)
 
-    # Summary 
+    # Summary
     print("QA pairs found per collection:")
     print("-" * 52)
     for folder, count in sorted(folder_stats.items()):
@@ -120,11 +122,11 @@ def main():
     # Split: eval vs corpus
     random.shuffle(all_records)
     eval_set = all_records[:EVAL_SIZE]
-    corpus   = all_records[EVAL_SIZE:]
+    corpus = all_records[EVAL_SIZE:]
 
-    # Save 
+    # Save
     corpus_path = OUTPUT_DIR / "corpus.json"
-    eval_path   = EVAL_DIR   / "eval_set.json"
+    eval_path = EVAL_DIR / "eval_set.json"
 
     with open(corpus_path, "w", encoding="utf-8") as f:
         json.dump(corpus, f, ensure_ascii=False, indent=2)
