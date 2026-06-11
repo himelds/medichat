@@ -22,7 +22,7 @@ from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
 
 Path("data/cache").mkdir(parents=True, exist_ok=True)
-set_llm_cache(SQLiteCache(database_path="data/cache/ragas_judge_cache.db"))
+set_llm_cache(SQLiteCache(database_path="data/cache/ragas_hybrid_cache.db"))
 
 import numpy as np
 from datasets import Dataset
